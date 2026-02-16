@@ -1,0 +1,118 @@
+{% extends "rollover/base.html" %}
+{% load humanize %}
+{% block title %}Rollover {{ rollover.id }}{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 shadow-sm">
+    <div class="flex items-center justify-between">
+      <div>
+        <div class="text-xl font-bold">{{ rollover.name }}</div>
+        <div class="text-sm text-neutral-600 dark:text-neutral-400">{{ rollover.currency }} {{ rollover.initial_stake }} • Odds {{ rollover.target_odds }} • Rounds {{ rollover.total_rounds }}</div>
+      </div>
+      <div class="flex items-center gap-4">
+        <div class="rounded-2xl bg-emerald-50 dark:bg-emerald-900/30 px-4 py-3">
+          <div class="text-[10px] uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Bankroll</div>
+          <div class="text-3xl sm:text-4xl font-extrabold tracking-tight">{{ rollover.currency }} {{ rollover.current_bankroll|floatformat:2|intcomma }}</div>
+        </div>
+        <form action="{% url 'rollover_delete' rollover_id=rollover.id %}" method="post" onsubmit="return confirm('Delete this rollover? This cannot be undone.')">
+          {% csrf_token %}
+          <button class="rounded-lg px-3 py-1 text-sm font-semibold bg-red-600 text-white">Delete</button>
+        </form>
+      </div>
+    </div>
+    <div class="mt-6 grid grid-cols-1 gap-4">
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
+          <thead>
+            <tr class="text-left text-neutral-600 dark:text-neutral-400">
+              <th class="py-2 pr-4">Round</th>
+              <th class="py-2 pr-4">Status</th>
+              <th class="py-2 pr-4">Planned Stake</th>
+              <th class="py-2 pr-4">Planned Odds</th>
+              <th class="py-2 pr-4">Actual Stake</th>
+              <th class="py-2 pr-4">Actual Odds</th>
+              <th class="py-2 pr-4">Return</th>
+              <th class="py-2 pr-4">Bankroll After</th>
+              <th class="py-2 pr-4">Number of Games</th>
+              <th class="py-2 pr-4">Update</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for rr in rounds %}
+            <tr>
+              <td class="py-2 pr-4">{{ rr.number }}</td>
+              <td class="py-2 pr-4">
+                {% with s=rr.status %}
+                <span class="px-2 py-1 rounded font-semibold
+                  {% if s == 'pending' %} bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200
+                  {% elif s == 'running' %} bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200
+                  {% elif s == 'won' %} bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200
+                  {% elif s == 'lost' %} bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200
+                  {% elif s == 'void' %} bg-slate-100 text-slate-800 dark:bg-slate-900/40 dark:text-slate-200
+                  {% elif s == 'skipped' %} bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200
+                  {% else %} bg-neutral-100 text-neutral-800 dark:bg-neutral-900/40 dark:text-neutral-200
+                  {% endif %}
+                ">{{ rr.status }}</span>
+                {% endwith %}
+              </td>
+              <td class="py-2 pr-4">{{ rollover.currency }} {{ rr.planned_stake }}</td>
+              <td class="py-2 pr-4">{{ rr.planned_odds }}</td>
+              <td class="py-2 pr-4">
+                <input data-id="{{ rr.id }}" data-field="actual_stake" type="number" step="0.01" class="w-28 rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-2 py-1" value="{{ rr.actual_stake|default:'' }}">
+              </td>
+              <td class="py-2 pr-4">
+                <input data-id="{{ rr.id }}" data-field="actual_odds" type="number" step="0.01" class="w-24 rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-2 py-1" value="{{ rr.actual_odds|default:'' }}">
+              </td>
+              <td class="py-2 pr-4">{{ rr.return_amount|default:'' }}</td>
+              <td class="py-2 pr-4">{{ rr.bankroll_after|default:'' }}</td>
+              <td class="py-2 pr-4">
+                <input data-id="{{ rr.id }}" data-field="games_count" type="number" min="0" step="1" class="w-28 rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-2 py-1" value="{{ rr.games_count|default:'1' }}">
+              </td>
+              <td class="py-2 pr-4">
+                <div class="flex items-center gap-2">
+                  <select data-id="{{ rr.id }}" data-field="status" class="rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-2 py-1">
+                    <option value="pending" {% if rr.status == 'pending' %}selected{% endif %}>pending</option>
+                    <option value="running" {% if rr.status == 'running' %}selected{% endif %}>running</option>
+                    <option value="won" {% if rr.status == 'won' %}selected{% endif %}>won</option>
+                    <option value="lost" {% if rr.status == 'lost' %}selected{% endif %}>lost</option>
+                    <option value="void" {% if rr.status == 'void' %}selected{% endif %}>void</option>
+                    <option value="skipped" {% if rr.status == 'skipped' %}selected{% endif %}>skipped</option>
+                  </select>
+                  <button data-id="{{ rr.id }}" class="rounded-lg px-3 py-1 text-sm font-semibold bg-blue-600 text-white">Save</button>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="mt-6">
+      <a href="/" class="rounded-lg px-4 py-2 font-semibold border border-neutral-200 dark:border-neutral-800">Back</a>
+    </div>
+  </div>
+</div>
+<script>
+  const postUpdate = async (id, payload) => {
+    const r = await fetch('/api/rounds/' + id + '/update/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+    const data = await r.json()
+    location.reload()
+  }
+  document.querySelectorAll('button[data-id]').forEach(b => {
+    b.addEventListener('click', () => {
+      const id = b.getAttribute('data-id')
+      const fields = document.querySelectorAll('[data-id="' + id + '"]')
+      const payload = {}
+      fields.forEach(f => {
+        const k = f.getAttribute('data-field')
+        let v = f.value
+        if (k === 'actual_stake' || k === 'actual_odds') {
+          v = v ? parseFloat(v) : null
+        }
+        payload[k] = v
+      })
+      postUpdate(id, payload)
+    })
+  })
+</script>
+{% endblock %}

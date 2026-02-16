@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bet Rollover & Win Calculator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'ui-sans-serif', 'system-ui', 'Segoe UI', 'Helvetica Neue', 'Arial', 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji']
+          },
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              200: '#bfdbfe',
+              300: '#93c5fd',
+              400: '#60a5fa',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="h-full bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100">
+  <div class="min-h-full">
+    <header class="relative">
+      <div class="absolute inset-0 blur-3xl pointer-events-none" aria-hidden="true">
+        <div class="h-64 bg-gradient-to-r from-brand-600/20 via-fuchsia-500/10 to-emerald-500/10 dark:from-brand-600/30 dark:via-fuchsia-500/20 dark:to-emerald-500/20"></div>
+      </div>
+      <div class="relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="h-10 w-10 rounded-xl bg-brand-600 text-white grid place-items-center font-extrabold">BR</div>
+              <div>
+                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Bet Rollover & Win Calculator</h1>
+                <p class="text-sm text-neutral-600 dark:text-neutral-400">Plan rollovers, estimate returns, and optimize your bets</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <select id="currency" class="rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-3 py-2 text-sm">
+                <option value="GHS" selected>GHS</option>
+                <option value="$">$</option>
+                <option value="€">€</option>
+                <option value="£">£</option>
+                <option value="₦">₦</option>
+                <option value="₵">₵</option>
+              </select>
+              <button id="theme-toggle" class="rounded-lg px-3 py-2 text-sm font-semibold bg-neutral-900 text-white dark:bg-white dark:text-neutral-900">Dark</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+    <main class="relative">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+        <section class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="lg:col-span-2 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 shadow-sm">
+            <h2 class="text-xl font-bold">Compound Rollover</h2>
+            <p class="text-sm text-neutral-600 dark:text-neutral-400">Reinvest winnings across rounds to see potential growth</p>
+            <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="text-sm font-semibold">Initial Stake</label>
+                <input id="cr-stake" type="number" min="0" step="0.01" class="mt-2 w-full rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-3 py-2" value="100">
+              </div>
+              <div>
+                <label class="text-sm font-semibold">Decimal Odds</label>
+                <input id="cr-odds" type="number" min="1.01" step="0.01" class="mt-2 w-full rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-3 py-2" value="2.00">
+              </div>
+              <div>
+                <label class="text-sm font-semibold">Rollovers</label>
+                <input id="cr-rounds" type="number" min="1" step="1" class="mt-2 w-full rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-3 py-2" value="3">
+              </div>
+              <div>
+                <label class="text-sm font-semibold">Reinvest %</label>
+                <input id="cr-reinvest" type="range" min="0" max="100" step="1" class="mt-2 w-full" value="100">
+                <div class="text-xs mt-1"><span id="cr-reinvest-label">100%</span></div>
+              </div>
+            </div>
+            <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div class="rounded-xl bg-brand-50 dark:bg-neutral-800 p-4">
+                <div class="text-xs text-neutral-600 dark:text-neutral-400">Final Bankroll</div>
+                <div id="cr-final" class="text-2xl font-extrabold"></div>
+              </div>
+              <div class="rounded-xl bg-brand-50 dark:bg-neutral-800 p-4">
+                <div class="text-xs text-neutral-600 dark:text-neutral-400">Profit</div>
+                <div id="cr-profit" class="text-2xl font-extrabold"></div>
+              </div>
+              <div class="rounded-xl bg-brand-50 dark:bg-neutral-800 p-4">
+                <div class="text-xs text-neutral-600 dark:text-neutral-400">Implied Probability</div>
+                <div id="cr-prob" class="text-2xl font-extrabold"></div>
+              </div>
+            </div>
+            <div class="mt-6 overflow-x-auto">
+              <table class="min-w-full text-sm">
+                <thead>
+                  <tr class="text-left text-neutral-600 dark:text-neutral-400">
+                    <th class="py-2 pr-4">Round</th>
+                    <th class="py-2 pr-4">Stake</th>
+                    <th class="py-2 pr-4">Return</th>
+                    <th class="py-2 pr-4">Carry Over</th>
+                  </tr>
+                </thead>
+                <tbody id="cr-table"></tbody>
+              </table>
+            </div>
+            <div class="mt-6 flex items-center gap-3">
+              <button id="cr-share" class="rounded-lg px-4 py-2 font-semibold bg-brand-600 text-white">Share</button>
+              <button id="cr-save" class="rounded-lg px-4 py-2 font-semibold border border-neutral-200 dark:border-neutral-800">Save Scenario</button>
+            </div>
+          </div>
+          <div class="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 shadow-sm">
+            <h2 class="text-xl font-bold">Bonus Rollover</h2>
+            <p class="text-sm text-neutral-600 dark:text-neutral-400">Estimate turnover needed to clear a bonus</p>
+            <div class="mt-6 grid grid-cols-1 gap-4">
+              <div>
+                <label class="text-sm font-semibold">Deposit</label>
+                <input id="br-deposit" type="number" min="0" step="0.01" class="mt-2 w-full rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-3 py-2" value="100">
+              </div>
+              <div>
+                <label class="text-sm font-semibold">Bonus</label>
+                <input id="br-bonus" type="number" min="0" step="0.01" class="mt-2 w-full rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-3 py-2" value="50">
+              </div>
+              <div>
+                <label class="text-sm font-semibold">Rollover Multiplier</label>
+                <input id="br-multiplier" type="number" min="1" step="1" class="mt-2 w-full rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-3 py-2" value="5">
+              </div>
+              <div>
+                <label class="text-sm font-semibold">Average Bet Size</label>
+                <input id="br-betsize" type="number" min="1" step="0.01" class="mt-2 w-full rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-3 py-2" value="50">
+              </div>
+              <div>
+                <label class="text-sm font-semibold">Assumed Margin %</label>
+                <input id="br-margin" type="range" min="0" max="15" step="0.5" class="mt-2 w-full" value="5">
+                <div class="text-xs mt-1"><span id="br-margin-label">5%</span></div>
+              </div>
+            </div>
+            <div class="mt-4 grid grid-cols-1 gap-4">
+              <div class="rounded-xl bg-brand-50 dark:bg-neutral-800 p-4">
+                <div class="text-xs text-neutral-600 dark:text-neutral-400">Total Turnover Required</div>
+                <div id="br-turnover" class="text-2xl font-extrabold"></div>
+              </div>
+              <div class="rounded-xl bg-brand-50 dark:bg-neutral-800 p-4">
+                <div class="text-xs text-neutral-600 dark:text-neutral-400">Estimated Bets Needed</div>
+                <div id="br-bets" class="text-2xl font-extrabold"></div>
+              </div>
+              <div class="rounded-xl bg-brand-50 dark:bg-neutral-800 p-4">
+                <div class="text-xs text-neutral-600 dark:text-neutral-400">Expected Loss</div>
+                <div id="br-loss" class="text-2xl font-extrabold"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 shadow-sm">
+            <h2 class="text-xl font-bold">Multi-Leg Odds</h2>
+            <p class="text-sm text-neutral-600 dark:text-neutral-400">Combine decimal odds and see potential win</p>
+            <div class="mt-6 grid grid-cols-1 gap-4">
+              <div>
+                <label class="text-sm font-semibold">Stake</label>
+                <input id="ml-stake" type="number" min="0" step="0.01" class="mt-2 w-full rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-3 py-2" value="50">
+              </div>
+              <div>
+                <label class="text-sm font-semibold">Decimal Odds (comma-separated)</label>
+                <input id="ml-odds" type="text" class="mt-2 w-full rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-3 py-2" placeholder="1.8, 2.1, 3.0">
+              </div>
+            </div>
+            <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div class="rounded-xl bg-brand-50 dark:bg-neutral-800 p-4">
+                <div class="text-xs text-neutral-600 dark:text-neutral-400">Combined Odds</div>
+                <div id="ml-combined" class="text-2xl font-extrabold"></div>
+              </div>
+              <div class="rounded-xl bg-brand-50 dark:bg-neutral-800 p-4">
+                <div class="text-xs text-neutral-600 dark:text-neutral-400">Potential Return</div>
+                <div id="ml-return" class="text-2xl font-extrabold"></div>
+              </div>
+              <div class="rounded-xl bg-brand-50 dark:bg-neutral-800 p-4">
+                <div class="text-xs text-neutral-600 dark:text-neutral-400">ROI</div>
+                <div id="ml-roi" class="text-2xl font-extrabold"></div>
+              </div>
+            </div>
+          </div>
+          <div class="lg:col-span-2 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 shadow-sm">
+            <h2 class="text-xl font-bold">Saved Scenarios</h2>
+            <p class="text-sm text-neutral-600 dark:text-neutral-400">Store and reload your favorite setups</p>
+            <div class="mt-4 flex gap-3">
+              <input id="save-name" type="text" class="w-64 rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-3 py-2" placeholder="Scenario name">
+              <button id="save-all" class="rounded-lg px-4 py-2 font-semibold bg-brand-600 text-white">Save All</button>
+              <button id="clear-saves" class="rounded-lg px-4 py-2 font-semibold border border-neutral-200 dark:border-neutral-800">Clear</button>
+            </div>
+            <div id="saved-list" class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+          </div>
+        </section>
+        <section class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="lg:col-span-3 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 shadow-sm">
+            <div class="flex items-center justify-between">
+              <div>
+                <h2 class="text-xl font-bold">Match Recommendations</h2>
+                <p class="text-sm text-neutral-600 dark:text-neutral-400">Pull matches and suggest picks that fit your rollover</p>
+              </div>
+              <div class="flex items-center gap-3">
+                <button id="rec-refresh" class="rounded-lg px-4 py-2 font-semibold bg-brand-600 text-white">Refresh</button>
+              </div>
+            </div>
+            <div class="mt-4 grid grid-cols-1 lg:grid-cols-5 gap-4">
+              <div class="rounded-xl border border-neutral-200 dark:border-neutral-800 p-4">
+                <div class="text-xs text-neutral-600 dark:text-neutral-400">Risk Profile</div>
+                <select id="rec-risk" class="mt-2 w-full rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-3 py-2">
+                  <option value="balanced" selected>Balanced</option>
+                  <option value="conservative">Conservative</option>
+                  <option value="aggressive">Aggressive</option>
+                  <option value="custom">Custom (near your odds)</option>
+                </select>
+              </div>
+              <div class="rounded-xl border border-neutral-200 dark:border-neutral-800 p-4">
+                <div class="flex items-center justify-between">
+                  <div class="text-xs text-neutral-600 dark:text-neutral-400">Min Odds</div>
+                  <div id="rec-min-label" class="text-xs font-semibold">1.80</div>
+                </div>
+                <input id="rec-min" type="range" min="1.01" max="5.00" step="0.01" class="mt-2 w-full" value="1.80">
+              </div>
+              <div class="rounded-xl border border-neutral-200 dark:border-neutral-800 p-4">
+                <div class="flex items-center justify-between">
+                  <div class="text-xs text-neutral-600 dark:text-neutral-400">Max Odds</div>
+                  <div id="rec-max-label" class="text-xs font-semibold">2.30</div>
+                </div>
+                <input id="rec-max" type="range" min="1.20" max="10.00" step="0.01" class="mt-2 w-full" value="2.30">
+              </div>
+              <div class="rounded-xl border border-neutral-200 dark:border-neutral-800 p-4">
+                <div class="text-xs text-neutral-600 dark:text-neutral-400">Pick Type</div>
+                <select id="rec-pick" class="mt-2 w-full rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-3 py-2">
+                  <option value="dc_1x" selected>Home or Draw (1X)</option>
+                  <option value="dc_x2">Away or Draw (X2)</option>
+                  <option value="result_home">Home Win</option>
+                  <option value="result_draw">Draw</option>
+                  <option value="result_away">Away Win</option>
+                  <option value="goals_over_0_5">Over 0.5 Goals</option>
+                  <option value="goals_over_1_5">Over 1.5 Goals</option>
+                  <option value="goals_even">Even Goals</option>
+                </select>
+              </div>
+              <div class="rounded-xl border border-neutral-200 dark:border-neutral-800 p-4">
+                <div class="flex items-center justify-between">
+                  <div class="text-xs text-neutral-600 dark:text-neutral-400">Min Probability %</div>
+                  <div id="rec-prob-label" class="text-xs font-semibold">70%</div>
+                </div>
+                <input id="rec-prob" type="range" min="50" max="95" step="1" class="mt-2 w-full" value="70">
+              </div>
+              <div class="rounded-xl border border-neutral-200 dark:border-neutral-800 p-4">
+                <div class="text-xs text-neutral-600 dark:text-neutral-400">Provider</div>
+                <select id="rec-provider" class="mt-2 w-full rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-3 py-2">
+                  <option value="sample" selected>Sample Data</option>
+                  <option value="theoddsapi">TheOddsAPI</option>
+                  <option value="custom">Custom URL</option>
+                </select>
+                <div class="mt-2 space-y-2">
+                  <input id="rec-url" type="text" placeholder="Custom JSON URL" class="w-full rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-3 py-2 hidden">
+                  <input id="rec-apiKey" type="text" placeholder="API Key (TheOddsAPI)" class="w-full rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-3 py-2 hidden">
+                  <input id="rec-sportKey" type="text" placeholder="Sport Key (e.g., soccer_epl)" class="w-full rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-3 py-2 hidden">
+                </div>
+                <div id="rec-status" class="mt-2 text-xs text-neutral-600 dark:text-neutral-400">Using Sample Data</div>
+              </div>
+            </div>
+            <div id="rec-list" class="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+          </div>
+        </section>
+      </div>
+    </main>
+    <footer class="border-t border-neutral-200 dark:border-neutral-800">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-sm text-neutral-600 dark:text-neutral-400">
+        <div class="flex items-center justify-between">
+          <div>© <span id="year"></span> BetRollover Tools</div>
+          <div>Made for smarter betting decisions</div>
+        </div>
+      </div>
+    </footer>
+  </div>
+  <script>
+    const q = s => document.querySelector(s)
+    const fmt = (n, sym) => ((/[A-Za-z]/.test(sym) ? sym + ' ' : sym) + Number(n).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}))
+    const pct = n => Number(n).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '%'
+    const sym = () => q('#currency').value
+    const clampn = (v, min, max) => Math.max(min, Math.min(max, v))
+    const yearEl = q('#year')
+    if (yearEl) yearEl.textContent = new Date().getFullYear()
+    const applyTheme = () => {
+      const saved = localStorage.getItem('theme') || 'light'
+      if (saved === 'dark') document.documentElement.classList.add('dark')
+      else document.documentElement.classList.remove('dark')
+      q('#theme-toggle').textContent = document.documentElement.classList.contains('dark') ? 'Light' : 'Dark'
+    }
+    applyTheme()
+    q('#theme-toggle').addEventListener('click', () => {
+      document.documentElement.classList.toggle('dark')
+      localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light')
+      q('#theme-toggle').textContent = document.documentElement.classList.contains('dark') ? 'Light' : 'Dark'
+    })
+    const crInputs = ['#cr-stake','#cr-odds','#cr-rounds','#cr-reinvest'].map(q)
+    const crReinvestLabel = q('#cr-reinvest-label')
+    const crCalc = () => {
+      const stake = clampn(parseFloat(q('#cr-stake').value || 0), 0, 1e9)
+      const odds = clampn(parseFloat(q('#cr-odds').value || 1), 1.01, 1000)
+      const rounds = clampn(parseInt(q('#cr-rounds').value || 1), 1, 100)
+      const reinvestPct = clampn(parseInt(q('#cr-reinvest').value || 100), 0, 100)
+      crReinvestLabel.textContent = reinvestPct + '%'
+      let bankroll = stake
+      const tbody = q('#cr-table')
+      tbody.innerHTML = ''
+      for (let r = 1; r <= rounds; r++) {
+        const stakeThis = bankroll * (reinvestPct/100)
+        const returnThis = stakeThis * odds
+        const carry = bankroll - stakeThis + returnThis
+        const tr = document.createElement('tr')
+        tr.innerHTML = '<td class="py-2 pr-4">' + r + '</td>' +
+          '<td class="py-2 pr-4">' + fmt(stakeThis, sym()) + '</td>' +
+          '<td class="py-2 pr-4">' + fmt(returnThis, sym()) + '</td>' +
+          '<td class="py-2 pr-4">' + fmt(carry, sym()) + '</td>'
+        tbody.appendChild(tr)
+        bankroll = carry
+      }
+      q('#cr-final').textContent = fmt(bankroll, sym())
+      q('#cr-profit').textContent = fmt(bankroll - stake, sym())
+      q('#cr-prob').textContent = pct(100/odds)
+    }
+    crInputs.forEach(el => el.addEventListener('input', crCalc))
+    q('#currency').addEventListener('change', () => { crCalc(); brCalc(); mlCalc() })
+    const urlParamsApply = () => {
+      const p = new URLSearchParams(location.search)
+      if (p.has('stake')) q('#cr-stake').value = p.get('stake')
+      if (p.has('odds')) q('#cr-odds').value = p.get('odds')
+      if (p.has('rounds')) q('#cr-rounds').value = p.get('rounds')
+      if (p.has('reinvest')) q('#cr-reinvest').value = p.get('reinvest')
+      if (p.has('currency')) q('#currency').value = p.get('currency')
+    }
+    urlParamsApply()
+    crCalc()
+    q('#cr-share').addEventListener('click', () => {
+      const params = new URLSearchParams()
+      params.set('stake', q('#cr-stake').value)
+      params.set('odds', q('#cr-odds').value)
+      params.set('rounds', q('#cr-rounds').value)
+      params.set('reinvest', q('#cr-reinvest').value)
+      params.set('currency', q('#currency').value)
+      const url = location.origin + location.pathname + '?' + params.toString()
+      navigator.clipboard.writeText(url)
+    })
+    q('#cr-save').addEventListener('click', () => {
+      const s = {
+        type: 'compound',
+        stake: q('#cr-stake').value,
+        odds: q('#cr-odds').value,
+        rounds: q('#cr-rounds').value,
+        reinvest: q('#cr-reinvest').value,
+        currency: q('#currency').value,
+        savedAt: Date.now()
+      }
+      const list = JSON.parse(localStorage.getItem('savedScenarios') || '[]')
+      list.unshift(s)
+      localStorage.setItem('savedScenarios', JSON.stringify(list.slice(0, 20)))
+      renderSaved()
+    })
+    const brInputs = ['#br-deposit','#br-bonus','#br-multiplier','#br-betsize','#br-margin'].map(q)
+    const brMarginLabel = q('#br-margin-label')
+    const brCalc = () => {
+      const deposit = clampn(parseFloat(q('#br-deposit').value || 0), 0, 1e9)
+      const bonus = clampn(parseFloat(q('#br-bonus').value || 0), 0, 1e9)
+      const m = clampn(parseFloat(q('#br-multiplier').value || 1), 1, 100)
+      const betsize = clampn(parseFloat(q('#br-betsize').value || 1), 1, 1e9)
+      const margin = clampn(parseFloat(q('#br-margin').value || 5), 0, 50)
+      brMarginLabel.textContent = margin + '%'
+      const turnover = (deposit + bonus) * m
+      const betsNeeded = Math.ceil(turnover / betsize)
+      const expectedLoss = turnover * (margin/100)
+      q('#br-turnover').textContent = fmt(turnover, sym())
+      q('#br-bets').textContent = betsNeeded.toLocaleString()
+      q('#br-loss').textContent = fmt(expectedLoss, sym())
+    }
+    brInputs.forEach(el => el.addEventListener('input', brCalc))
+    brCalc()
+    const mlInputs = ['#ml-stake','#ml-odds'].map(q)
+    const mlCalc = () => {
+      const stake = clampn(parseFloat(q('#ml-stake').value || 0), 0, 1e9)
+      const raw = q('#ml-odds').value.trim()
+      const arr = raw.length ? raw.split(',').map(s => parseFloat(s.trim())).filter(v => !isNaN(v) && v >= 1.01) : []
+      const combined = arr.reduce((acc, v) => acc * v, 1)
+      const ret = stake * combined
+      const roi = stake > 0 ? ((ret - stake)/stake)*100 : 0
+      q('#ml-combined').textContent = combined ? combined.toFixed(2) : '—'
+      q('#ml-return').textContent = combined ? fmt(ret, sym()) : '—'
+      q('#ml-roi').textContent = combined ? pct(roi) : '—'
+    }
+    mlInputs.forEach(el => el.addEventListener('input', mlCalc))
+    mlCalc()
+    const renderSaved = () => {
+      const list = JSON.parse(localStorage.getItem('savedScenarios') || '[]')
+      const c = q('#saved-list')
+      c.innerHTML = ''
+      list.forEach((s, i) => {
+        const card = document.createElement('div')
+        card.className = 'rounded-xl border border-neutral-200 dark:border-neutral-800 p-4 flex items-start justify-between'
+        const name = s.name || ('Scenario ' + (i+1))
+        const meta = s.type === 'compound' ? 'Stake ' + s.stake + ' @ ' + s.odds + ' x ' + s.rounds + ' • ' + s.reinvest + '%' : 'Mixed'
+        const left = document.createElement('div')
+        left.innerHTML = '<div class="font-semibold">' + name + '</div><div class="text-xs text-neutral-600 dark:text-neutral-400">' + meta + '</div>'
+        const right = document.createElement('div')
+        const load = document.createElement('button')
+        load.className = 'rounded-lg px-3 py-1 text-sm font-semibold bg-brand-600 text-white'
+        load.textContent = 'Load'
+        load.addEventListener('click', () => {
+          if (s.type === 'compound') {
+            q('#cr-stake').value = s.stake
+            q('#cr-odds').value = s.odds
+            q('#cr-rounds').value = s.rounds
+            q('#cr-reinvest').value = s.reinvest
+            q('#currency').value = s.currency || '$'
+            crCalc()
+          }
+        })
+        const del = document.createElement('button')
+        del.className = 'rounded-lg px-3 py-1 text-sm font-semibold border border-neutral-200 dark:border-neutral-800 ml-2'
+        del.textContent = 'Delete'
+        del.addEventListener('click', () => {
+          const list = JSON.parse(localStorage.getItem('savedScenarios') || '[]')
+          localStorage.setItem('savedScenarios', JSON.stringify(list.filter((_, idx) => idx !== i)))
+          renderSaved()
+        })
+        right.appendChild(load)
+        right.appendChild(del)
+        card.appendChild(left)
+        card.appendChild(right)
+        c.appendChild(card)
+      })
+    }
+    renderSaved()
+    q('#save-all').addEventListener('click', () => {
+      const name = q('#save-name').value.trim() || 'My Scenario'
+      const s = {
+        name,
+        type: 'compound',
+        stake: q('#cr-stake').value,
+        odds: q('#cr-odds').value,
+        rounds: q('#cr-rounds').value,
+        reinvest: q('#cr-reinvest').value,
+        currency: q('#currency').value,
+        savedAt: Date.now()
+      }
+      const list = JSON.parse(localStorage.getItem('savedScenarios') || '[]')
+      list.unshift(s)
+      localStorage.setItem('savedScenarios', JSON.stringify(list.slice(0, 20)))
+      renderSaved()
+      q('#save-name').value = ''
+    })
+    q('#clear-saves').addEventListener('click', () => {
+      localStorage.removeItem('savedScenarios')
+      renderSaved()
+    })
+    const recMin = q('#rec-min')
+    const recMax = q('#rec-max')
+    const recMinLabel = q('#rec-min-label')
+    const recMaxLabel = q('#rec-max-label')
+    const recRisk = q('#rec-risk')
+    const recPick = q('#rec-pick')
+    const recProb = q('#rec-prob')
+    const recProbLabel = q('#rec-prob-label')
+    const recProvider = q('#rec-provider')
+    const recUrl = q('#rec-url')
+    const recApiKey = q('#rec-apiKey')
+    const recSportKey = q('#rec-sportKey')
+    const recStatus = q('#rec-status')
+    const recList = q('#rec-list')
+    const setRiskDefaults = () => {
+      const v = recRisk.value
+      if (v === 'conservative') { recMin.value = 1.15; recMax.value = 1.60 }
+      else if (v === 'balanced') { recMin.value = 1.20; recMax.value = 2.00 }
+      else if (v === 'aggressive') { recMin.value = 2.00; recMax.value = 4.00 }
+      else {
+        const t = clampn(parseFloat(q('#cr-odds').value || 2.0), 1.01, 10)
+        recMin.value = clampn(t - 0.30, 1.01, 10).toFixed(2)
+        recMax.value = clampn(t + 0.30, 1.02, 10).toFixed(2)
+      }
+      recMinLabel.textContent = parseFloat(recMin.value).toFixed(2)
+      recMaxLabel.textContent = parseFloat(recMax.value).toFixed(2)
+    }
+    const saveRecConfig = () => {
+      const cfg = {
+        provider: recProvider.value,
+        url: recUrl.value.trim(),
+        apiKey: recApiKey.value.trim(),
+        sportKey: recSportKey.value.trim() || 'soccer_epl'
+      }
+      localStorage.setItem('recConfig', JSON.stringify(cfg))
+    }
+    const loadRecConfig = () => {
+      const cfg = JSON.parse(localStorage.getItem('recConfig') || '{}')
+      if (cfg.provider) recProvider.value = cfg.provider
+      if (cfg.url) recUrl.value = cfg.url
+      if (cfg.apiKey) recApiKey.value = cfg.apiKey
+      recSportKey.value = cfg.sportKey || 'soccer_epl'
+      updateProviderVisibility()
+    }
+    const updateProviderVisibility = () => {
+      const v = recProvider.value
+      recUrl.classList.toggle('hidden', v !== 'custom')
+      recApiKey.classList.toggle('hidden', v !== 'theoddsapi')
+      recSportKey.classList.toggle('hidden', v !== 'theoddsapi')
+      if (v === 'sample') recStatus.textContent = 'Using Sample Data'
+      else if (v === 'theoddsapi') recStatus.textContent = 'Using TheOddsAPI'
+      else recStatus.textContent = 'Using Custom URL'
+    }
+    const normProbs = (m) => {
+      const oh = m.odds.home || 0
+      const od = m.odds.draw || 0
+      const oa = m.odds.away || 0
+      const rh = oh ? (1/oh) : 0
+      const rd = od ? (1/od) : 0
+      const ra = oa ? (1/oa) : 0
+      const sum = rh + rd + ra
+      if (!sum) return { ph:0, pd:0, pa:0, overround:0 }
+      return { ph: rh/sum, pd: rd/sum, pa: ra/sum, overround: sum }
+    }
+    const lambdaFromProbs = (p) => {
+      const base = 2.2
+      const adj = clampn(base - 1.5*p.pd, 0.4, 3.5)
+      return adj
+    }
+    const normalizeTheOddsApi = (items) => {
+      const out = []
+      items.forEach(ev => {
+        const league = ev.sport_title || ev.sport_key || 'Unknown'
+        const starts_at = ev.commence_time
+        const home = ev.home_team
+        const away = ev.away_team
+        const bm = ev.bookmakers && ev.bookmakers[0]
+        if (!bm) return
+        const m = bm.markets && bm.markets.find(mm => mm.key === 'h2h')
+        if (!m) return
+        const prices = {}
+        m.outcomes.forEach(o => {
+          if (o.name && o.price) {
+            const k = o.name.toLowerCase().includes('draw') ? 'draw' :
+              o.name === home ? 'home' :
+              o.name === away ? 'away' : null
+            if (k) prices[k] = o.price
+          }
+        })
+        if (prices.home || prices.away || prices.draw) {
+          out.push({ id: ev.id || ev.event_id || (home + '-' + away), sport: 'soccer', league, starts_at, home, away, odds: prices })
+        }
+      })
+      return out
+    }
+    const fetchMatches = async () => {
+      const cfg = JSON.parse(localStorage.getItem('recConfig') || '{"provider":"sample"}')
+      try {
+        if (cfg.provider === 'sample') {
+          const r = await fetch('matches.sample.json', { cache: 'no-store' })
+          return await r.json()
+        } else if (cfg.provider === 'theoddsapi') {
+          const url = 'https://api.the-odds-api.com/v4/sports/' + (cfg.sportKey || 'soccer_epl') + '/odds/?apiKey=' + encodeURIComponent(cfg.apiKey || '') + '&regions=eu&markets=h2h&oddsFormat=decimal'
+          const r = await fetch(url)
+          const data = await r.json()
+          return normalizeTheOddsApi(Array.isArray(data) ? data : [])
+        } else if (cfg.provider === 'custom') {
+          const r = await fetch(cfg.url)
+          return await r.json()
+        }
+      } catch (e) {
+        const r = await fetch('matches.sample.json', { cache: 'no-store' })
+        return await r.json()
+      }
+      const r = await fetch('matches.sample.json', { cache: 'no-store' })
+      return await r.json()
+    }
+    const recommendMatches = (matches) => {
+      const min = parseFloat(recMin.value)
+      const max = parseFloat(recMax.value)
+      const minProb = parseFloat(recProb.value)
+      const mode = recPick.value
+      const target = clampn(parseFloat(q('#cr-odds').value || 2.0), 1.01, 10)
+      const recs = []
+      matches.forEach(m => {
+        const p = normProbs(m)
+        let ip = 0
+        let decOdds = 0
+        let ok = false
+        if (mode === 'result_home' && m.odds.home) {
+          decOdds = m.odds.home
+          ip = 100/decOdds
+          ok = (decOdds >= min && decOdds <= max && ip >= minProb)
+        } else if (mode === 'result_draw' && m.odds.draw) {
+          decOdds = m.odds.draw
+          ip = 100/decOdds
+          ok = (decOdds >= min && decOdds <= max && ip >= minProb)
+        } else if (mode === 'result_away' && m.odds.away) {
+          decOdds = m.odds.away
+          ip = 100/decOdds
+          ok = (decOdds >= min && decOdds <= max && ip >= minProb)
+        } else if (mode === 'dc_1x') {
+          const prob = p.ph + p.pd
+          ip = prob*100
+          decOdds = 1/Math.max(prob, 1e-9)
+          ok = (decOdds >= min && decOdds <= max && ip >= minProb)
+        } else if (mode === 'dc_x2') {
+          const prob = p.pa + p.pd
+          ip = prob*100
+          decOdds = 1/Math.max(prob, 1e-9)
+          ok = (decOdds >= min && decOdds <= max && ip >= minProb)
+        } else if (mode === 'goals_over_0_5') {
+          const lam = lambdaFromProbs(p)
+          const prob = 1 - Math.exp(-lam)
+          ip = prob*100
+          decOdds = 1/Math.max(prob, 1e-9)
+          ok = (decOdds >= min && decOdds <= max && ip >= minProb)
+        } else if (mode === 'goals_over_1_5') {
+          const lam = lambdaFromProbs(p)
+          const prob = 1 - Math.exp(-lam)*(1+lam)
+          ip = prob*100
+          decOdds = 1/Math.max(prob, 1e-9)
+          ok = (decOdds >= min && decOdds <= max && ip >= minProb)
+        } else if (mode === 'goals_even') {
+          const lam = lambdaFromProbs(p)
+          const prob = 0.5*(1 + Math.exp(-2*lam))
+          ip = prob*100
+          decOdds = 1/Math.max(prob, 1e-9)
+          ok = (decOdds >= min && decOdds <= max && ip >= minProb)
+        }
+        if (ok) {
+          recs.push({
+            id: m.id,
+            league: m.league,
+            starts_at: m.starts_at,
+            home: m.home,
+            away: m.away,
+            pickType: mode,
+            odds: decOdds,
+            ip,
+            score: Math.abs(decOdds - target)
+          })
+        }
+      })
+      recs.sort((a, b) => a.score - b.score || (new Date(a.starts_at) - new Date(b.starts_at)))
+      return recs.slice(0, 18)
+    }
+    const renderRecommendations = (recs) => {
+      recList.innerHTML = ''
+      recs.forEach(r => {
+        const card = document.createElement('div')
+        card.className = 'rounded-xl border border-neutral-200 dark:border-neutral-800 p-4'
+        const d = new Date(r.starts_at)
+        const dt = d.toLocaleString()
+        const title = r.home + ' vs ' + r.away
+        let pickLabel = ''
+        if (r.pickType === 'result_home') pickLabel = r.home
+        else if (r.pickType === 'result_away') pickLabel = r.away
+        else if (r.pickType === 'result_draw') pickLabel = 'Draw'
+        else if (r.pickType === 'dc_1x') pickLabel = 'Home or Draw (1X)'
+        else if (r.pickType === 'dc_x2') pickLabel = 'Away or Draw (X2)'
+        else if (r.pickType === 'goals_over_0_5') pickLabel = 'Over 0.5 Goals'
+        else if (r.pickType === 'goals_over_1_5') pickLabel = 'Over 1.5 Goals'
+        else if (r.pickType === 'goals_even') pickLabel = 'Even Goals'
+        card.innerHTML =
+          '<div class="text-xs text-neutral-600 dark:text-neutral-400">' + r.league + ' • ' + dt + '</div>' +
+          '<div class="mt-1 font-semibold">' + title + '</div>' +
+          '<div class="mt-2 grid grid-cols-2 gap-2">' +
+            '<div class="rounded-lg bg-brand-50 dark:bg-neutral-800 p-3">' +
+              '<div class="text-xs text-neutral-600 dark:text-neutral-400">Pick</div>' +
+              '<div class="text-lg font-bold">' + pickLabel + ' @ ' + r.odds.toFixed(2) + '</div>' +
+            '</div>' +
+            '<div class="rounded-lg bg-brand-50 dark:bg-neutral-800 p-3">' +
+              '<div class="text-xs text-neutral-600 dark:text-neutral-400">Implied Prob.</div>' +
+              '<div class="text-lg font-bold">' + pct(r.ip) + '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="mt-3 flex items-center gap-3">' +
+            '<button class="rounded-lg px-3 py-2 text-sm font-semibold bg-brand-600 text-white">Add to Multi-Leg</button>' +
+            '<button class="rounded-lg px-3 py-2 text-sm font-semibold border border-neutral-200 dark:border-neutral-800">Copy</button>' +
+          '</div>'
+        const addBtn = card.querySelector('button:nth-child(1)')
+        addBtn.addEventListener('click', () => {
+          const current = q('#ml-odds').value.trim()
+          const updated = current.length ? (current + ', ' + r.odds.toFixed(2)) : r.odds.toFixed(2)
+          q('#ml-odds').value = updated
+          mlCalc()
+        })
+        const copyBtn = card.querySelector('button:nth-child(2)')
+        copyBtn.addEventListener('click', () => {
+          const text = title + ' • Pick: ' + pickLabel + ' @ ' + r.odds.toFixed(2)
+          navigator.clipboard.writeText(text)
+        })
+        recList.appendChild(card)
+      })
+    }
+    const recRefresh = async () => {
+      setRiskDefaults()
+      saveRecConfig()
+      const matches = await fetchMatches()
+      const recs = recommendMatches(matches)
+      renderRecommendations(recs)
+    }
+    recRisk.addEventListener('change', recRefresh)
+    recMin.addEventListener('input', () => { recMinLabel.textContent = parseFloat(recMin.value).toFixed(2); recRefresh() })
+    recMax.addEventListener('input', () => { recMaxLabel.textContent = parseFloat(recMax.value).toFixed(2); recRefresh() })
+    recPick.addEventListener('change', recRefresh)
+    recProb.addEventListener('input', () => { recProbLabel.textContent = parseInt(recProb.value) + '%'; recRefresh() })
+    recProvider.addEventListener('change', () => { updateProviderVisibility(); recRefresh() })
+    recUrl.addEventListener('input', saveRecConfig)
+    recApiKey.addEventListener('input', saveRecConfig)
+    recSportKey.addEventListener('input', saveRecConfig)
+    q('#rec-refresh').addEventListener('click', recRefresh)
+    loadRecConfig()
+    setRiskDefaults()
+    recRefresh()
+  </script>
+</body>
+</html>

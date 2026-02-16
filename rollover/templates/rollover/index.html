@@ -1,0 +1,166 @@
+{% extends "rollover/base.html" %}
+{% block title %}Start Rollover{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 shadow-sm">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xl font-bold">Start a Rollover</div>
+          <div class="text-sm text-neutral-600 dark:text-neutral-400">Create and auto-plan rounds</div>
+        </div>
+      </div>
+      <form action="{% url 'rollover_create' %}" method="post" class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {% csrf_token %}
+        <div>
+          <div class="text-sm font-semibold">Name</div>
+          <input name="name" type="text" class="mt-2 w-full rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-3 py-2" value="My Rollover">
+        </div>
+        <div>
+          <div class="text-sm font-semibold">Currency</div>
+          <select name="currency" class="mt-2 w-full rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-3 py-2">
+            <option value="GHS" selected>GHS</option>
+            <option value="$">$</option>
+            <option value="€">€</option>
+          </select>
+        </div>
+        <div>
+          <div class="text-sm font-semibold">Initial Stake</div>
+          <input name="initial_stake" type="number" min="0" step="0.01" class="mt-2 w-full rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-3 py-2" value="100">
+        </div>
+        <div>
+          <div class="text-sm font-semibold">Decimal Odds</div>
+          <input name="target_odds" type="number" min="1.01" step="0.01" class="mt-2 w-full rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-3 py-2" value="2.00">
+        </div>
+        <div>
+          <div class="text-sm font-semibold">Rollovers</div>
+          <input name="total_rounds" type="number" min="1" step="1" class="mt-2 w-full rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-3 py-2" value="3">
+        </div>
+        <div>
+          <div class="text-sm font-semibold">Reinvest %</div>
+          <input name="reinvest_pct" type="number" min="0" max="100" step="1" class="mt-2 w-full rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-3 py-2" value="100">
+        </div>
+        <div class="sm:col-span-2">
+          <button class="rounded-lg px-4 py-2 font-semibold bg-blue-600 text-white">Create</button>
+        </div>
+      </form>
+    </div>
+    <div class="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 shadow-sm">
+      <div class="text-xl font-bold">Quick Tools</div>
+      <div class="text-sm text-neutral-600 dark:text-neutral-400">Use recommendations to plan picks</div>
+      <div class="mt-4 grid grid-cols-1 gap-2">
+        <div class="text-sm font-semibold">Pick Type</div>
+        <select id="rec-pick" class="rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-3 py-2">
+          <option value="dc_1x" selected>Home or Draw (1X)</option>
+          <option value="dc_x2">Away or Draw (X2)</option>
+          <option value="result_home">Home Win</option>
+          <option value="result_draw">Draw</option>
+          <option value="result_away">Away Win</option>
+          <option value="goals_over_0_5">Over 0.5 Goals</option>
+          <option value="goals_over_1_5">Over 1.5 Goals</option>
+          <option value="goals_even">Even Goals</option>
+        </select>
+        <div class="text-sm font-semibold">Min Probability %</div>
+        <input id="rec-prob" type="range" min="50" max="95" step="1" value="70" class="w-full">
+        <div class="text-xs text-neutral-600 dark:text-neutral-400">Odds Range</div>
+        <div class="grid grid-cols-2 gap-2">
+          <input id="rec-min" type="number" value="1.20" step="0.01" class="rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-3 py-2">
+          <input id="rec-max" type="number" value="2.50" step="0.01" class="rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-3 py-2">
+        </div>
+        <button id="rec-run" class="rounded-lg px-4 py-2 font-semibold bg-blue-600 text-white mt-2">Recommend</button>
+      </div>
+    </div>
+  </div>
+  <div class="mt-8 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 shadow-sm">
+    <div class="text-xl font-bold">Recommendations</div>
+    <div id="rec-list" class="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+  </div>
+  <div class="mt-8 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 shadow-sm">
+    <div class="flex items-center justify-between">
+      <div class="text-xl font-bold">My Rollovers</div>
+      <a href="/" class="text-sm font-semibold">Refresh</a>
+    </div>
+    <div class="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+      {% for r in rollovers %}
+      <div class="rounded-xl border border-neutral-200 dark:border-neutral-800 p-4 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition">
+        <div class="flex items-start justify-between">
+          <div>
+            <div class="text-xs text-neutral-600 dark:text-neutral-400">{{ r.created_at }}</div>
+            <a href="{% url 'rollover_detail' rollover_id=r.id %}" class="mt-1 font-semibold block">{{ r.name }}</a>
+            <div class="text-sm text-neutral-600 dark:text-neutral-400">{{ r.currency }} {{ r.initial_stake }} • Odds {{ r.target_odds }} • Rounds {{ r.total_rounds }}</div>
+            <div class="mt-2 text-sm font-semibold">Bankroll: {{ r.currency }} {{ r.current_bankroll }}</div>
+            <div class="mt-2">
+              {% with s=r.status %}
+              <span class="px-2 py-1 rounded text-xs font-semibold
+                {% if s == 'pending' %} bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200
+                {% elif s == 'running' %} bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200
+                {% elif s == 'won' %} bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200
+                {% elif s == 'lost' %} bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200
+                {% elif s == 'void' %} bg-slate-100 text-slate-800 dark:bg-slate-900/40 dark:text-slate-200
+                {% elif s == 'skipped' %} bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200
+                {% else %} bg-neutral-100 text-neutral-800 dark:bg-neutral-900/40 dark:text-neutral-200
+                {% endif %}
+              ">{{ r.status }}</span>
+              {% endwith %}
+            </div>
+          </div>
+          <form action="{% url 'rollover_delete' rollover_id=r.id %}" method="post" onsubmit="return confirm('Delete this rollover? This cannot be undone.')">
+            {% csrf_token %}
+            <button class="rounded-lg px-3 py-1 text-sm font-semibold bg-red-600 text-white">Delete</button>
+          </form>
+        </div>
+      </div>
+      {% empty %}
+      <div class="text-sm text-neutral-600 dark:text-neutral-400">No rollovers yet</div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+<script>
+  const q = s => document.querySelector(s)
+  const pct = n => Number(n).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '%'
+  const renderRecommendations = (items) => {
+    const c = q('#rec-list')
+    c.innerHTML = ''
+    items.forEach(r => {
+      const card = document.createElement('div')
+      card.className = 'rounded-xl border border-neutral-200 dark:border-neutral-800 p-4'
+      const title = r.home + ' vs ' + r.away
+      let pickLabel = ''
+      if (r.pick_type === 'result_home') pickLabel = r.home
+      else if (r.pick_type === 'result_away') pickLabel = r.away
+      else if (r.pick_type === 'result_draw') pickLabel = 'Draw'
+      else if (r.pick_type === 'dc_1x') pickLabel = 'Home or Draw (1X)'
+      else if (r.pick_type === 'dc_x2') pickLabel = 'Away or Draw (X2)'
+      else if (r.pick_type === 'goals_over_0_5') pickLabel = 'Over 0.5 Goals'
+      else if (r.pick_type === 'goals_over_1_5') pickLabel = 'Over 1.5 Goals'
+      else if (r.pick_type === 'goals_even') pickLabel = 'Even Goals'
+      card.innerHTML =
+        '<div class="text-xs text-neutral-600 dark:text-neutral-400">' + (r.league || '') + '</div>' +
+        '<div class="mt-1 font-semibold">' + title + '</div>' +
+        '<div class="mt-2 grid grid-cols-2 gap-2">' +
+          '<div class="rounded-lg bg-blue-50 dark:bg-neutral-800 p-3">' +
+            '<div class="text-xs text-neutral-600 dark:text-neutral-400">Pick</div>' +
+            '<div class="text-lg font-bold">' + pickLabel + ' @ ' + Number(r.odds).toFixed(2) + '</div>' +
+          '</div>' +
+          '<div class="rounded-lg bg-blue-50 dark:bg-neutral-800 p-3">' +
+            '<div class="text-xs text-neutral-600 dark:text-neutral-400">Implied Prob.</div>' +
+            '<div class="text-lg font-bold">' + pct(r.prob) + '</div>' +
+          '</div>' +
+        '</div>'
+      c.appendChild(card)
+    })
+  }
+  q('#rec-run').addEventListener('click', async () => {
+    const params = new URLSearchParams()
+    params.set('pick_type', q('#rec-pick').value)
+    params.set('min_prob', q('#rec-prob').value)
+    params.set('min_odds', q('#rec-min').value)
+    params.set('max_odds', q('#rec-max').value)
+    params.set('target_odds', '2.0')
+    const r = await fetch('/api/recommendations/?' + params.toString())
+    const data = await r.json()
+    renderRecommendations(data.results || [])
+  })
+</script>
+{% endblock %}

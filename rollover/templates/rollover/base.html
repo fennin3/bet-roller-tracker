@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Bet Rollover{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class' }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="h-full bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100">
+  <div class="min-h-full">
+    <header class="border-b border-neutral-200 dark:border-neutral-800">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="h-10 w-10 rounded-xl bg-blue-600 text-white grid place-items-center font-extrabold">BR</div>
+          <div class="font-extrabold">Bet Rollover</div>
+        </div>
+        <div class="flex items-center gap-3">
+          <button id="theme-toggle" class="rounded-lg px-3 py-2 text-sm font-semibold bg-neutral-900 text-white dark:bg-white dark:text-neutral-900">Dark</button>
+        </div>
+      </div>
+    </header>
+    <main>
+      {% block content %}{% endblock %}
+    </main>
+    <footer class="border-t border-neutral-200 dark:border-neutral-800">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-sm text-neutral-600 dark:text-neutral-400">
+        <div class="flex items-center justify-between">
+          <div>© <span id="year"></span> BetRollover Tools</div>
+          <div>SQLite • Django</div>
+        </div>
+      </div>
+    </footer>
+  </div>
+  <script>
+    const themeToggle = document.getElementById('theme-toggle')
+    const applyTheme = () => {
+      const saved = localStorage.getItem('theme') || 'light'
+      if (saved === 'dark') document.documentElement.classList.add('dark')
+      else document.documentElement.classList.remove('dark')
+      themeToggle.textContent = document.documentElement.classList.contains('dark') ? 'Light' : 'Dark'
+    }
+    applyTheme()
+    themeToggle.addEventListener('click', () => {
+      document.documentElement.classList.toggle('dark')
+      localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light')
+      themeToggle.textContent = document.documentElement.classList.contains('dark') ? 'Light' : 'Dark'
+    })
+    const y = document.getElementById('year')
+    if (y) y.textContent = new Date().getFullYear()
+  </script>
+</body>
+</html>
