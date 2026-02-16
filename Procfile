@@ -1,1 +1,1 @@
-web: gunicorn betrollover.wsgi --bind 0.0.0.0:8070
+web: python manage.py runserver 0.0.0.0:8070
